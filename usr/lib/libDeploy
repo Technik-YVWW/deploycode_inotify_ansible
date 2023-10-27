@@ -6,7 +6,6 @@ get_config_value()
 
     local valuename="$2"
     [ -z "$valuename" ] && return 1
-    #valuename="$valuename"
 
     grep -w "$valuename" $file_path | awk -F"${valuename}:" '{print $2}' | tr -d '[:space:]'
 }
@@ -38,14 +37,14 @@ run_ansible_playbook() {
     ansible-playbook -i "$inventory" -e "@$vars_file" "$playbook"
 }
 
-# Funktion für die Endlosschleife mit inotifywait
+#
+# Hauptfunktion der Libary, auch für die Endlosschleife mit inotifywait.
+#
 # $1: Ordner zu Überwachnung mit INotifywait
 # $2: DIe Vars Datei, zur Übergabe an run_ansible_playbook
 # $3: Die  Playbook datei, welche unter /usr/lib/libDeploy/playbooks liegt
-# $4: Testmode: Statt zu warten, sofort ausführen
+# $4: Testmode: Statt zu warten, sofort ausführen und nur einmal ausführen.
 #
-#
-# Beispiel: ansible-playbook -i inventory.yml -e "@vars_inventorys_to_semaphore.yml" push-to-server.yml
 watch_for_run_pb() {
     local config_file="$1"
     [ ! -r "$config_file" ] && {
@@ -68,7 +67,6 @@ watch_for_run_pb() {
     [ ! -d "$tmp_inventorys" ] && mkdir -p "$tmp_inventorys"
 
     # Get the Dir to Watch.
-    echo "COnfig_file: $config_file"
     inotify_watchdir=$(get_config_value "$config_file" "inotify_watchdir")
     [ ! -d "$inotify_watchdir" ] && {
         echo "ERROR: The Directory $inotify_watchdir does not exist. Abort."
@@ -91,11 +89,10 @@ watch_for_run_pb() {
             # Waiting 5 Seconds after action. be gentle to the filesystem
             sleep 5
         } || {
-            echp "Notice: in Testmode. Skipping Wait for Files."
+            echp "Notice: in Testmode. Skipping inotify."
         }
 
         for i in $(seq 1 100); do
-          echo "-------- SEQ: $i --------"
           playbook_file=$(get_config_value "$config_file" "playbook${i}")
           playbook_vars_file=$(get_config_value "$config_file" "vars_playbook${i}")
           [ -z "$playbook_file" ] && break
@@ -125,6 +122,9 @@ watch_for_run_pb() {
           run_ansible_playbook "$playbook_file" "$playbook_inv_file" "$playbook_vars_file"
         done
         # On Testmode: only run one time.
-        [ "$testmode" = "1" ] && break
+        [ "$testmode" = "1" ] && {
+            echo "TESTMODE. We Not Wait for Changes, Skript is End now."
+            break
+        }
     done
 }

@@ -7,14 +7,6 @@ tool_inotifywait=$(which inotifywait)
     exit 0
 }
 
-### Get the COnfig name to test;
-config_name="$1"
-[ -z "$config_name" ] && {
-    echo "Error: this is a Test Script. Overgive a File name Placed in $config_folder as First Patameter."
-    echo "Aborting Script"
-    exit 1
-}
-
 # Get Libaries.
 [ -f "./usr/lib/libDeploy" ] && . ./usr/lib/libDeploy || . /usr/lib/libDeploy
 
@@ -33,10 +25,19 @@ pb_vars_folder="/etc/deploycode/playbook-vars/"
     exit 0
 }
 
-config_folder="/etc/deploycode/configs-enabled"
+# The COnfig Folder in the Test Script is the Available Folder!
+config_folder="/etc/deploycode/configs-available"
 [ ! -d "$config_folder" ] && {
     echo "Error! Can not found the Config-Enabled folder ($config_folder) folder. Aborting Script."
     exit 0
+}
+
+### Get the COnfig name to test;
+config_name="$1"
+[ -z "$config_name" ] && {
+    echo "Error: this is a Test Script. Overgive a File name Placed in $config_folder as First Patameter."
+    echo "Aborting Script"
+    exit 1
 }
 
 cd $config_folder
@@ -46,5 +47,6 @@ config_file="${config_folder}/${config_name}.conf"
     echo "Aborting Script"
     exit 2
 }
+config_name=""
 
 watch_for_run_pb "$config_file" "" "" "1"
