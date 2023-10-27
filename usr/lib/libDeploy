@@ -6,7 +6,7 @@ get_config_value()
 
     local valuename="$2"
     [ -z "$valuename" ] && return 1
-    valuename="$valuename"
+    #valuename="$valuename"
 
     grep -w "$valuename" $file_path | awk -F"${valuename}:" '{print $2}' | tr -d '[:space:]'
 }
