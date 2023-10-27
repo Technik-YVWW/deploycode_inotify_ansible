@@ -6,7 +6,7 @@ SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 cd $SCRIPT_DIR
 
 echo Checking Foldrs...
-folders="/etc/deploycode/configs-available /etc/deploycode/configs-enabled /etc/deploycode/playbooks /etc/deploycode/playbook-vars /usr/lib/libDeploy"
+folders="/etc/deploycode/configs-available /etc/deploycode/configs-enabled /etc/deploycode/playbooks /etc/deploycode/playbook-vars"
 for folder in $folders; do
     echo Folder: $folder
     [ ! -d "$folder" ] && mkdir -p $folder
