@@ -40,7 +40,7 @@ config_folder="/etc/deploycode/configs-enabled"
 }
 
 cd $config_folder
-config_file="${config_folder}/${config_name}"
+config_file="${config_folder}/${config_name}.conf"
 [ ! -f "$config_file" ] && {
     echo "Error!: The File $config_file does not exist"
     echo "Aborting Script"
