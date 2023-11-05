@@ -31,8 +31,15 @@ config_folder="/etc/deploycode/configs-enabled"
     exit 0
 }
 
+pb_tmp_pids="/tmp/deploycode/pids/"
+[ ! -d "$pb_tmp_pids" ] && mkdir -p "$pb_tmp_pids"
+
 ctrl_c() {
-        echo "** Trapped CTRL-C"
+    echo "** Trapped CTRL-C"
+    for file in $(ls $pb_tmp_pids/*.pid); do
+     echo "Listing: $file" 
+    done
+    
 }
 
 # trap ctrl-c and call ctrl_c()
@@ -55,7 +62,9 @@ for file in $(ls $config_folder/*.conf); do
   # Its not The Last Config - Start in the Background.
   [ ! "$count_run" = "$count_configs" ] && {
     watch_for_run_pb "$file"&
-    echo "Value: $?"
+    watch_pid="$!"
+    echo -n "$watch_pid" > "${pb_tmp_pids}${watch_pid}.pid"
+    echo "Value: $!"
   }
 
 
