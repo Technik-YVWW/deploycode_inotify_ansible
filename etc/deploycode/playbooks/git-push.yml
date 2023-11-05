@@ -1,0 +1,13 @@
+- name: Aktualisiere Git-Repository auf entferntem Host
+  hosts: "{{ target_server }}"
+  gather_facts: no
+  remote_user: "{{ target_user }}"
+  tasks:
+    - name: Das Repository Pushen.
+      become: true
+      become_user: "{{ git_local_user }}"
+      git_acp:
+        path: "{{ local_dir }}"
+        url: "{{ full_bare_repo }}"
+        branch: "{{ git_branch }}"
+        push_force: true
