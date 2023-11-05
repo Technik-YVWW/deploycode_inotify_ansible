@@ -31,7 +31,9 @@ config_folder="/etc/deploycode/configs-available"
 config_name="$1"
 [ -z "$config_name" ] && {
     echo "Error: this is a Test Script. Overgive a File name Placed in $config_folder as First Patameter."
-    echo "Aborting Script"
+    echo "Listing. Give it wihtOUT the .conf!"
+    ls $config_folder
+    echo "Aborting Script for this time."
     exit 1
 }
 
