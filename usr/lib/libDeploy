@@ -1,4 +1,4 @@
-# Von einem Kommentar in einer yaml, den String extrahieren
+# von einer .conf datei, den wert Extrahieren.
 get_config_value()
 {
     local file_path="$1"
@@ -10,6 +10,7 @@ get_config_value()
     grep -w "$valuename" $file_path | awk -F"${valuename}:" '{print $2}' | tr -d '[:space:]'
 }
 
+# von einer .xml datei, den wert Extrahieren.
 get_yml_value()
 {
     local file_path="$1"
