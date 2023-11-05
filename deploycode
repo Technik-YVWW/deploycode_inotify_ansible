@@ -31,7 +31,7 @@ config_folder="/etc/deploycode/configs-enabled"
     exit 0
 }
 
-function ctrl_c() {
+ctrl_c() {
         echo "** Trapped CTRL-C"
 }
 
