@@ -2,6 +2,9 @@
   hosts: "{{ target_server }}"
   gather_facts: no
   remote_user: "{{ target_user }}"
+  collections:
+    - lvrfrc87.git_acp
+
   tasks:
     - name: Das Repository Pushen.
       become: true
