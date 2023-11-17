@@ -69,8 +69,7 @@ for file in "$config_folder"/*.conf; do
 		file=$(readlink "$file")
 		file=$(realpath "$file")
 	}
-
-	count_run=$(echo "$count_run" + 1 | bc)
+	count_run=$((count_run + 1))
 	echo "Starting run $count_run from $count_configs"
 
 	# Its not The Last Config - Start in the Background.
