@@ -1,48 +1,51 @@
 #!/bin/sh
-DEPLOYCODE_SILENT_ANSIBLE=0
-DEPLOYCODE_SILENT_INOTIFY=0
+export DEPLOYCODE_SILENT_ANSIBLE=0
+export DEPLOYCODE_SILENT_INOTIFY=0
 
 # Get Libaries.
-[ -f "./usr/lib/libDeploy" ] && . ./usr/lib/libDeploy || . /usr/lib/libDeploy
+# Priorize, the Internal Libaries - thats the defaullt.
+#if [ -f "/usr/lib/libDeploy" ]; then . /usr/lib/libDeploy; else . ./usr/lib/libDeploy; fi
+# Priorize, the Development Libs in this folder, thats for Test envirement.
+if [ -f "./usr/lib/libDeploy" ]; then . ./usr/lib/libDeploy; else . /usr/lib/libDeploy; fi
 
 # Search for Playbook Folders..
 pb_folder="/etc/deploycode/playbooks/"
 [ ! -d "$pb_folder" ] && pb_folder="./etc/deploycode/playbooks"
 
 [ ! -d "$pb_folder" ] && {
-    echo "Error! Can not found the Playbook folder. Aborting Script."
-    exit 0
+	echo "Error! Can not found the Playbook folder. Aborting Script."
+	exit 0
 }
 
 pb_vars_folder="/etc/deploycode/playbook-vars/"
 [ ! -d "$pb_vars_folder" ] && {
-    echo "Error! Can not found the Playbook-Vars Folder folder ($pb_vars_folder) folder. Aborting Script."
-    exit 0
+	echo "Error! Can not found the Playbook-Vars Folder folder ($pb_vars_folder) folder. Aborting Script."
+	exit 0
 }
 
 # The COnfig Folder in the Test Script is the Available Folder!
 config_folder="/etc/deploycode/configs-available"
 [ ! -d "$config_folder" ] && {
-    echo "Error! Can not found the Config-Enabled folder ($config_folder) folder. Aborting Script."
-    exit 0
+	echo "Error! Can not found the Config-Enabled folder ($config_folder) folder. Aborting Script."
+	exit 0
 }
 
 ### Get the COnfig name to test;
 config_name="$1"
 [ -z "$config_name" ] && {
-    echo "Error: this is a Test Script. Overgive a File name Placed in $config_folder as First Patameter."
-    echo "Listing. Give it wihtOUT the .conf!"
-    ls $config_folder
-    echo "Aborting Script for this time."
-    exit 1
+	echo "Error: this is a Test Script. Overgive a File name Placed in $config_folder as First Patameter."
+	echo "Listing. Give it wihtOUT the .conf!"
+	ls $config_folder
+	echo "Aborting Script for this time."
+	exit 1
 }
 
-cd $config_folder
+cd "$config_folder" || exit 1
 config_file="${config_folder}/${config_name}.conf"
 [ ! -f "$config_file" ] && {
-    echo "Error!: The File $config_file does not exist"
-    echo "Aborting Script"
-    exit 2
+	echo "Error!: The File $config_file does not exist"
+	echo "Aborting Script"
+	exit 2
 }
 config_name=""
 

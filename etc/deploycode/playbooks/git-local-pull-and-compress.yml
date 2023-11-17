@@ -50,4 +50,3 @@
       with_items:
         - "{{ archive_dest }}"
         - "{{ archive_dest }}.sha256"
-  

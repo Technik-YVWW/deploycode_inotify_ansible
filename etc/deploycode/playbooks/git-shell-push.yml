@@ -13,7 +13,7 @@
           /usr/bin/git-update-toServer
         } || {
           git add -A
-          git commit -m "Automated Commit by Ansible " 
+          git commit -m "Automated Commit by Ansible "
           git push --all
         }
       args:

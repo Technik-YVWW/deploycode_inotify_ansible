@@ -1,5 +1,10 @@
-[ "DEPLOYCODE_SILENT_ANSIBLE" = "" ] && DEPLOYCODE_SILENT_ANSIBLE=0
-[ "DEPLOYCODE_SILENT_INOTIFY" = "" ] && DEPLOYCODE_SILENT_INOTIFY=0
+#shecllcheck disable=SC2148
+[ "$DEPLOYCODE_SILENT_ANSIBLE" = "" ] && DEPLOYCODE_SILENT_ANSIBLE=0
+[ "$DEPLOYCODE_SILENT_INOTIFY" = "" ] && DEPLOYCODE_SILENT_INOTIFY=0
+
+#
+# Find Tools for the Scripts: Ansible and inootify(wait)
+#
 
 find_tool_inotify() {
     [ -x "$tool_inotifywait" ] && return 0
@@ -21,35 +26,51 @@ find_tool_ansible() {
     }
 }
 
+# Count files in a Specified Folder.
+count_folder_files() {
+    folder="$1"
+    extension="$2"
+    [ -z "$folder" ] && return 1
+
+    [ -z "$extension" ] && counter=$(find "$folder"/* -maxdepth 0 -type f) ||  counter=$(find "$folder"/*."${extension}" -maxdepth 0 -type f)
+    [ -z "$counter" ] && return 2
+
+    counter=$(echo "$counter" | wc -l)
+    [ -z "$counter" ] && return 3
+
+    echo "$counter"
+    return 0
+}
+
 # von einer .conf datei, den wert Extrahieren.
 get_config_value()
 {
-    local file_path="$1"
+    file_path="$1"
     [ ! -r "$file_path" ] && return 1
 
-    local valuename="$2"
+    valuename="$2"
     [ -z "$valuename" ] && return 1
 
-    grep -v "^#" $file_path | grep -w "$valuename" | awk -F"${valuename}:" '{print $2}' | tr -d '[:space:]'
+    grep -v "^#" "$file_path" | grep -w "$valuename" | awk -F"${valuename}:" '{print $2}' | tr -d '[:space:]'
 }
 
 # von einer .xml datei, den wert Extrahieren.
 get_yml_value()
 {
-    local file_path="$1"
+    file_path="$1"
     [ ! -r "$file_path" ] && return 1
 
-    local valuename="$2"
+    valuename="$2"
     [ -z "$valuename" ] && return 1
 
-    grep -w  "$valuename" $file_path | awk -F':' '{print $2}' | tr -d '[:space:]'
+    grep -w  "$valuename" "$file_path" | awk -F':' '{print $2}' | tr -d '[:space:]'
 }
 
 # Funktion zum Ausführen des Ansible-Playbooks
 run_ansible_playbook() {
-    local playbook="$1"
-    local inventory="$2"
-    local vars_file="$3"
+    playbook="$1"
+    inventory="$2"
+    vars_file="$3"
 
     find_tool_ansible
     for file in $playbook $inventory $vars_file; do
@@ -59,9 +80,11 @@ run_ansible_playbook() {
         }
     done
 
-    [ "$DEPLOYCODE_SILENT_ANSIBLE" = "1" ] && {
-        $tool_ansible -i "$inventory" -e "@$vars_file" "$playbook" 2>&1 >/dev/null
-    } || $tool_ansible -i "$inventory" -e "@$vars_file" "$playbook"
+    if [ "$DEPLOYCODE_SILENT_ANSIBLE" = "1" ]; then
+        $tool_ansible -i "$inventory" -e "@$vars_file" "$playbook" >/dev/null 2>&1
+    else
+        $tool_ansible -i "$inventory" -e "@$vars_file" "$playbook"
+    fi
 
     return $?
 }
@@ -75,24 +98,26 @@ run_ansible_playbook() {
 # $4: Testmode: Statt zu warten, sofort ausführen und nur einmal ausführen.
 #
 watch_for_run_pb() {
-    local config_file="$1"
+    config_file="$1"
     [ ! -r "$config_file" ] && {
         echo "Can not Read the Config: $config_file. Abort."
         return 1
     }
 
-    local playbook_folder="$2"
+    playbook_folder="$2"
+    # shellcheck disable=SC2154
     [ -z "$playbook_folder" ] && playbook_folder="$pb_folder"
     [ ! -d "$playbook_folder" ] && echo "No Playbook folder found ($playbook_folder) in function watch_and_run_playbooks, abort." && return 2
 
-    local playbook_vars_folder="$3"
+    playbook_vars_folder="$3"
+    # shellcheck disable=SC2154
     [ -z "$playbook_vars_folder" ] && playbook_vars_folder="$pb_vars_folder"
     [ ! -d "$playbook_vars_folder" ] && echo "No Playbook vars folder ($playbook_vars_folder) found in function watch_and_run_playbooks, abort." && return 3
 
-    local testmode="$4"
+    testmode="$4"
     [ -z "$testmode" ] && testmode="0"
 
-    local tmp_inventorys="/tmp/deploycode/inv/"
+    tmp_inventorys="/tmp/deploycode/inv/"
     [ ! -d "$tmp_inventorys" ] && mkdir -p "$tmp_inventorys"
 
     # Get the Dir to Watch.
@@ -107,24 +132,27 @@ watch_for_run_pb() {
         [ ! -d "$inotify_watchdir" ] && break
 
         # Looking for Changes in the Watchdir
-        [ "$testmode" = "0" ] && {
+        if [ "$testmode" = "0" ]; then
             find_tool_inotify
             #echo Starting inotifywait: inotifywait -r -e modify,create,delete "$inotify_watchdir"
 
-            [ "$DEPLOYCODE_SILENT_INOTIFY" = "1" ] && {
-                $tool_inotifywait -r -e modify,create,delete "$inotify_watchdir" 2>&1 >/dev/null
-            } || $tool_inotifywait -r -e modify,create,delete "$inotify_watchdir"
-            
-            [ ! "$?" = "0" ] && {
+            if [ "$DEPLOYCODE_SILENT_INOTIFY" = "1" ]; then
+                $tool_inotifywait -r -e modify,create,delete "$inotify_watchdir" >/dev/null 2>&1
+            else
+                $tool_inotifywait -r -e modify,create,delete "$inotify_watchdir"
+            fi
+            retval="$?"
+
+            [ ! "$retval" = "0" ] && {
                 echo "Error in Inotifywait, aborting Loop, Directory Deleted??"
                 break
             }
 
             # Waiting 5 Seconds after action. be gentle to the filesystem
             sleep 5
-        } || { # Testmode Active!
+        else
             echo "-- IN TESTMODE: Skipping inotify."
-        }
+        fi
 
         for i in $(seq 1 100); do
           playbook_file=$(get_config_value "$config_file" "playbook${i}")
@@ -134,7 +162,7 @@ watch_for_run_pb() {
 
           # Building Full Pathes..
           playbook_file="${playbook_folder}${playbook_file}.yml"
-          [ ! -r $playbook_file ] && echo "Error! Playbook File ($playbook_file) does not exist! Abort!" && break
+          [ ! -r "$playbook_file" ] && echo "Error! Playbook File ($playbook_file) does not exist! Abort!" && break
 
           playbook_vars_file="${playbook_vars_folder}${playbook_vars_file}.yml"
           [ ! -r "$playbook_vars_file" ] && echo "Error! Playbook Vars File ($playbook_vars_file) does not exist! Abort!" && break
@@ -145,7 +173,7 @@ watch_for_run_pb() {
              echo "Can not found a Server. Skript abort."
           }
 
-          playbook_inv_file="${tmp_inventorys}inv_$(echo $server | tr -d '.').ini"
+          playbook_inv_file="${tmp_inventorys}inv_$(echo "$server" | tr -d '.').ini"
           [ ! -f "$playbook_inv_file" ] && {
             touch "$playbook_inv_file"
             echo "[hosts]" >> "$playbook_inv_file"
@@ -161,7 +189,7 @@ watch_for_run_pb() {
             echo "-- IN TESTMODE: We Not Wait for Changes, Skript is End now."
             break
         }
-        
-        [ -f "$playbook_inv_file" ] && rm -f $playbook_inv_file
+
+        [ -f "$playbook_inv_file" ] && rm -f "$playbook_inv_file"
     done
 }
