@@ -30,9 +30,11 @@ find_tool_ansible() {
 count_folder_files() {
     folder="$1"
     extension="$2"
+    types="$3"
     [ -z "$folder" ] && return 1
+    [ -z "$types" ] && types="f,l"
 
-    [ -z "$extension" ] && counter=$(find "$folder"/* -maxdepth 0 -type f) || counter=$(find "$folder"/*."$extension" -maxdepth 0 -type f)
+    [ -z "$extension" ] && counter=$(find "$folder"/* -maxdepth 0 -type "$types") || counter=$(find "$folder"/*."$extension" -maxdepth 0 -type "$types")
     [ -z "$counter" ] && return 2
 
     counter=$(echo "$counter" | wc -l)
