@@ -4,9 +4,26 @@
   gather_facts: false
   remote_user: "{{ target_user }}"
   tasks:
+    - name: Define Stop/Start Service
+      ansible.builtin.set_fact:
+        need_service_start_stop: false
+      when: need_service_start_stop is undefined
+
+    - name: Stop Service, when Needed.
+      ansible.builtin.service:
+        name: "{{ service_name }}"
+        state: stopped
+      when: need_service_start_stop == true
+
     - name: Aktualisiere das Git-Repository
       ansible.builtin.git:
         repo: "{{ full_bare_repo }}"
         dest: "{{ remote_dir }}"
         force: true
         update: true
+
+    - name: Start Service, when Needed.
+      ansible.builtin.service:
+        name: "{{ service_name }}"
+        state: started
+      when: need_service_start_stop == true

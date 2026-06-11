@@ -39,19 +39,24 @@ find_tool_flock() {
 # Count files in a Specified Folder.
 count_folder_files() {
     folder="$1"
-    extension="$2"
-    types="$3"
+    extension="${2:-}"
     [ -z "$folder" ] && return 1
-    [ -z "$types" ] && types="f,l"
+    [ -d "$folder" ] || return 1
 
-    [ -z "$extension" ] && counter=$(find "$folder"/* -maxdepth 0 -type "$types") || counter=$(find "$folder"/*."$extension" -maxdepth 0 -type "$types")
-    [ -z "$counter" ] && return 2
-
-    counter=$(echo "$counter" | wc -l)
-    [ -z "$counter" ] && return 3
+    counter=0
+    if [ -n "$extension" ]; then
+        for file in "$folder"/*."$extension"; do
+            [ -e "$file" ] || [ -L "$file" ] || continue
+            counter=$((counter + 1))
+        done
+    else
+        for file in "$folder"/*; do
+            [ -e "$file" ] || [ -L "$file" ] || continue
+            counter=$((counter + 1))
+        done
+    fi
 
     echo "$counter"
-    return 0
 }
 
 # von einer .conf datei, den wert Extrahieren.
