@@ -1,6 +1,6 @@
 --- a/install.sh
 +++ b/install.sh
-@@ -1,4 +1,6 @@
+@@ -1,5 +1,7 @@
  #!/bin/sh
  
 +set -eu
