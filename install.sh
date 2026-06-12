@@ -29,6 +29,11 @@ for file in ./etc/deploycode/playbooks/*; do
 	install -m 0644 "$file" "/etc/deploycode/playbooks/$(basename "$file")"
 done
 
+if [ -d ./etc/deploycode/roles ]; then
+	echo "Installing roles..."
+	cp -R ./etc/deploycode/roles/. /etc/deploycode/roles/
+fi
+
 echo "Installing missing skeleton files..."
 for file in ./etc/deploycode/configs-available/* ./etc/deploycode/playbook-vars/*; do
 	[ -r "$file" ] || continue
