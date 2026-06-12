@@ -1,0 +1,6 @@
+target_server: 127.0.0.1
+full_bare_repo: ssh://git@127.0.0.1:/srv/git/example.git
+remote_dir: /srv/git-work/example
+# target_user: git
+# service_name: example.service
+# need_service_start_stop: false
