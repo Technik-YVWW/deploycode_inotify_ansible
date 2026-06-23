@@ -72,7 +72,7 @@ count_folder_files() {
     echo "$counter"
 }
 
-# Extract a value from a deploycode .conf file.
+# Extract a value from an ocm-deploy .conf file.
 get_config_value() {
     file_path="$1"
     [ -r "$file_path" ] || return 1
@@ -136,7 +136,7 @@ run_ansible_playbook() {
 #
 # Main function: wait for changes with inotifywait and run an ordered playbook chain.
 #
-# $1: deploycode config file
+# $1: ocm-deploy config file
 # $2: optional playbook folder override
 # $3: optional playbook-vars folder override
 # $4: test mode: execute directly once without waiting
@@ -165,7 +165,7 @@ watch_for_run_pb() {
     }
 
     testmode="${4:-0}"
-    runtime_dir="${DEPLOYCODE_RUNTIME_DIR:-/run/deploycode}"
+    runtime_dir="${OCM_DEPLOY_RUNTIME_DIR:-${DEPLOYCODE_RUNTIME_DIR:-/run/ocm-deploy}}"
     tmp_inventorys="$runtime_dir/inv/"
     locks_folder="$runtime_dir/locks/"
     mkdir -p "$tmp_inventorys" "$locks_folder"
