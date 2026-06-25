@@ -1,5 +1,5 @@
 #!/bin/sh
-# Smoke tests for usr/lib/libDeploy.
+# Sanity tests for usr/lib/libDeploy.
 # Purpose:
 # - catch basic regressions after renaming/refactoring
 # - test helper functions without touching /etc or requiring real Ansible targets
@@ -101,7 +101,7 @@ EOF_CONF
 # Keep one non-yml file to make sure extension counting is useful.
 touch "$playbook_dir/README.txt"
 
-echo "== libDeploy smoke test =="
+echo "== libDeploy sanity test =="
 echo
 
 assert_file_exists "local libDeploy exists" "$lib_file"
@@ -138,13 +138,13 @@ cat >"$fake_bin/ansible-playbook" <<'FAKE_ANSIBLE'
 {
 	echo "ansible-playbook called with:"
 	printf '%s\n' "$@"
-} >>"${LIBDEPLOY_SMOKE_LOG:?}"
+} >>"${LIBDEPLOY_SANITY_LOG:?}"
 exit 0
 FAKE_ANSIBLE
 chmod +x "$fake_bin/ansible-playbook"
 
-LIBDEPLOY_SMOKE_LOG="$tmpdir/ansible.log"
-export LIBDEPLOY_SMOKE_LOG
+LIBDEPLOY_SANITY_LOG="$tmpdir/ansible.log"
+export LIBDEPLOY_SANITY_LOG
 
 tool_ansible="$fake_bin/ansible-playbook"
 export OCM_DEPLOY_RUNTIME_DIR="$runtime_dir"
@@ -156,13 +156,13 @@ if command -v flock >/dev/null 2>&1; then
 		fail "watch_for_run_pb executes one configured playbook in test mode"
 	fi
 
-	if grep -q "$playbook_dir/git-pull.yml" "$LIBDEPLOY_SMOKE_LOG"; then
+	if grep -q "$playbook_dir/git-pull.yml" "$LIBDEPLOY_SANITY_LOG"; then
 		pass "fake ansible received expected playbook path"
 	else
 		fail "fake ansible received expected playbook path"
 	fi
 
-	if grep -q "$vars_dir/git-pull-local.yml" "$LIBDEPLOY_SMOKE_LOG"; then
+	if grep -q "$vars_dir/git-pull-local.yml" "$LIBDEPLOY_SANITY_LOG"; then
 		pass "fake ansible received expected vars path"
 	else
 		fail "fake ansible received expected vars path"
