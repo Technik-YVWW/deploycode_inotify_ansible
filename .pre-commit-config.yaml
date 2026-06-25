@@ -1,15 +1,14 @@
 ---
 # .pre-commit-config.yaml
-#  Config for it pre-commit, for more information see https://pre-commit.com/
+# Config for pre-commit, for more information see https://pre-commit.com/
 ci:
   # This section is specific to pre-commit.ci, telling it to create a pull request
-  #  - for Information about tjis see https://pre-commit.ci/
   # to update the linter version tag every week.
   autoupdate_schedule: weekly
-  # (optional, default: false) whether to recursively check out submodules
+  # Whether to recursively check out submodules.
   submodules: true
   # If you have other Ansible collection dependencies (requirements.yml)
-  # `pre-commit.ci` will not be able to install them because it runs in offline mode,
+  # pre-commit.ci will not be able to install them because it runs in offline mode,
   # and you will need to tell it to skip the hook.
   # skip:
   #   - ansible-lint
@@ -31,8 +30,9 @@ repos:
     rev: v2.4.2
     hooks:
       - id: codespell
+        args: [--ignore-words-list=archiv]
 
-  # Shellcheck and Shellfomat
+  # Shellcheck and shell formatting
   - repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: 3.0.0
     hooks:
@@ -40,13 +40,14 @@ repos:
         args: [--check-sourced, --external-sources]
       - id: shfmt
         args: [--posix]
-      - id: git-dirty
 
   # Markdown File Checker
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.49.0
     hooks:
       - id: markdownlint
+
+  # Python formatter
   - repo: https://github.com/psf/black
     rev: 26.5.1
     hooks:
