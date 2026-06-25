@@ -1,5 +1,5 @@
 [Unit]
-Description=Ansible Watchdog Service
+Description=ocm-deploy example watchdog service
 After=network.target
 
 [Service]
@@ -8,8 +8,8 @@ Group=root
 Type=simple
 Restart=always
 RestartSec=10
-WorkingDirectory=/git-work/ansible_ww_inventorys/ansible-playbook-pushToServer
-ExecStart=/git-work/ansible_ww_inventorys/ansible-playbook-pushToServer/push-to-servers_upSnapWOL.sh
+WorkingDirectory=/git-work/ocm-deploy
+ExecStart=/git-work/ocm-deploy/archiv/push-to-servers_upSnapWOL.sh
 
 [Install]
 WantedBy=multi-user.target

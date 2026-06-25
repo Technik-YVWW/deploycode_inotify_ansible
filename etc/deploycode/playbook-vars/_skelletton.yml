@@ -1,8 +1,0 @@
-target_server: 127.0.0.1
-full_bare_repo: ssh://git@127.0.0.1:/git/openwrt_scripts.git
-remote_dir: /git-work/openwrt_scripts
-target_user: git
-archive_dest: /home/scp-gitter/openwrt_scripts.gz
-archive_owner: "scp-gitter"
-archive_group: "invite"
-archive_excludes: ".git git_update_fromServer.sh git_update_toServer.sh create-ansible-project.sh"

@@ -1,0 +1,19 @@
+[Unit]
+Description=OCM Deploy Service
+After=local-fs.target network-online.target
+Wants=network-online.target
+
+[Service]
+User=root
+Group=root
+Type=simple
+RuntimeDirectory=ocm-deploy
+RuntimeDirectoryMode=0750
+Restart=on-failure
+RestartSec=10
+WorkingDirectory=/usr/bin
+ExecStart=/usr/bin/ocm-deploy
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target

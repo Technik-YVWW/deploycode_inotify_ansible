@@ -1,0 +1,109 @@
+#!/bin/sh
+# shellcheck disable=SC1091
+# Read the README for needed tools.
+export DEPLOYCODE_SILENT_ANSIBLE=1
+export DEPLOYCODE_SILENT_INOTIFY=0
+
+# Resolve the repository or installation directory once.
+SCRIPT_DIR=$(CDPATH='' cd "$(dirname "$0")" && pwd)
+
+# Get libraries.
+# shellcheck source=usr/lib/libDeploy
+# Prioritize the installed library. Fall back to the development tree.
+if [ -f "/usr/lib/libDeploy" ]; then
+	. /usr/lib/libDeploy
+else
+	. "${SCRIPT_DIR}/usr/lib/libDeploy"
+fi
+
+# Search for runtime folders.
+pb_folder="/etc/ocm-deploy/playbooks/"
+[ -d "$pb_folder" ] || pb_folder="${SCRIPT_DIR}/etc/ocm-deploy/playbooks/"
+
+[ -d "$pb_folder" ] || {
+	echo "Error! Can not find the playbook folder. Aborting script." >&2
+	exit 1
+}
+
+pb_vars_folder="/etc/ocm-deploy/playbook-vars/"
+[ -d "$pb_vars_folder" ] || pb_vars_folder="${SCRIPT_DIR}/etc/ocm-deploy/playbook-vars/"
+
+[ -d "$pb_vars_folder" ] || {
+	echo "Error! Can not find the playbook-vars folder ($pb_vars_folder). Aborting script." >&2
+	exit 1
+}
+
+config_folder="/etc/ocm-deploy/configs-enabled"
+[ -d "$config_folder" ] || config_folder="${SCRIPT_DIR}/etc/ocm-deploy/configs-enabled"
+
+[ -d "$config_folder" ] || {
+	echo "Error! Can not find the configs-enabled folder ($config_folder). Aborting script." >&2
+	exit 1
+}
+
+pb_folder="$(canonical_dir "$pb_folder")/"
+pb_vars_folder="$(canonical_dir "$pb_vars_folder")/"
+config_folder="$(canonical_dir "$config_folder")"
+
+runtime_dir="${DEPLOYCODE_RUNTIME_DIR:-/run/ocm-deploy}"
+pb_tmp_pids="$runtime_dir/pids/"
+mkdir -p "$pb_tmp_pids"
+
+kill_runnings() {
+	for file in "$pb_tmp_pids"/*.pid; do
+		[ -f "$file" ] || continue
+		pid=$(cat "$file")
+		[ -n "$pid" ] || {
+			rm -f "$file"
+			continue
+		}
+
+		echo "Stopping watcher PID: $pid"
+		pkill -TERM -P "$pid" 2>/dev/null || true
+		kill -TERM "$pid" 2>/dev/null || true
+		rm -f "$file"
+	done
+}
+
+ctrl_c() {
+	echo "** CTRL-C pressed. Stop running watchers..."
+	kill_runnings
+	exit 130
+}
+
+terminate() {
+	kill_runnings
+	exit 143
+}
+
+# Trap CTRL-C and termination.
+trap ctrl_c INT
+trap terminate TERM
+trap kill_runnings EXIT
+
+count_configs=$(count_folder_files "$config_folder" "conf")
+[ "$count_configs" -gt 0 ] || {
+	echo "No enabled config files found in $config_folder. Nothing to do." >&2
+	exit 1
+}
+
+count_run=0
+for file in "$config_folder"/*.conf; do
+	[ -e "$file" ] || [ -L "$file" ] || continue
+
+	echo "Working on: $file"
+	[ -L "$file" ] && file=$(realpath "$file")
+	count_run=$((count_run + 1))
+	echo "Starting run $count_run from $count_configs"
+
+	# It is not the last config: start in the background.
+	[ "$count_run" = "$count_configs" ] || {
+		watch_for_run_pb "$file" &
+		watch_pid="$!"
+		[ -n "$watch_pid" ] && echo "$watch_pid" >"${pb_tmp_pids}${watch_pid}.pid"
+		continue
+	}
+
+	# It is the last config: start in the foreground.
+	watch_for_run_pb "$file"
+done
