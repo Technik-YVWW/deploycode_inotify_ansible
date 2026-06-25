@@ -1,0 +1,12 @@
+---
+- hosts: all
+  gather_facts: false
+  tasks:
+    - name: Write dummy marker file
+      ansible.builtin.copy:
+        dest: /tmp/ocm-deploy-dummy-action.txt
+        content: |
+          ocm-deploy dummy action executed
+          target={{ inventory_hostname }}
+          run={{ lookup('pipe', 'date --iso-8601=seconds') }}
+        mode: "0644"
