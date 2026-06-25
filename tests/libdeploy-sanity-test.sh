@@ -7,7 +7,7 @@
 
 set -eu
 
-repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P)
+repo_root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd -P)
 cd "$repo_root"
 
 lib_file="./usr/lib/libDeploy"
@@ -147,6 +147,7 @@ LIBDEPLOY_SANITY_LOG="$tmpdir/ansible.log"
 export LIBDEPLOY_SANITY_LOG
 
 tool_ansible="$fake_bin/ansible-playbook"
+export tool_ansible
 export OCM_DEPLOY_RUNTIME_DIR="$runtime_dir"
 
 if command -v flock >/dev/null 2>&1; then
